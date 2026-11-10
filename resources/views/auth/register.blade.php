@@ -35,7 +35,7 @@
                         </div>
                         <div class="mb-3">
                             <label>Password (Min. 6 karakter)</label>
-                            <input type="password" name="password" class="form-control" required>
+                            <input type="password" name="password" class="form-control" required minlength="6">
                         </div>
                         <button type="submit" class="btn btn-success w-100">Daftar</button>
                     </form>
