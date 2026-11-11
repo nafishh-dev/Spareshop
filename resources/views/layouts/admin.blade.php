@@ -95,9 +95,9 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('admin.orders.index') }}" class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" title="Pesanan Masuk">
+                    <a href="{{ route('admin.orders.index') }}" class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" title="Kelola Pesanan">
                         <i class="bi bi-bag-check fs-5"></i>
-                        <span class="sidebar-text">Pesanan Masuk</span>
+                        <span class="sidebar-text">Kelola Pesanan</span>
                     </a>
                 </li>
             </ul>
@@ -172,7 +172,7 @@
             </main>
 
             <footer class="bg-white border-top text-center py-3 small text-muted mt-auto px-2">
-                &copy; 2026 MotoPart Store &mdash; Panel Administrasi Bengkel &amp; Ritel
+                &copy; 2026 MotoPart Store - Panel Administrasi Bengkel &amp; Ritel
             </footer>
         </div>
     </div>

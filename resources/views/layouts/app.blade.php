@@ -52,7 +52,7 @@
 <body class="d-flex flex-column min-vh-100">
 
     <!-- Sticky Top Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-motopart sticky-top py-3 shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-motopart sticky-top py-2 shadow-sm">
         <div class="container">
             <!-- Left: Brand Logo -->
             <a class="navbar-brand fw-bold fs-4 d-flex align-items-center gap-2" href="{{ route('katalog.index') }}">
@@ -69,7 +69,7 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center gap-lg-2 ms-lg-2">
                     <li class="nav-item">
                         <a class="nav-link text-nowrap {{ request()->routeIs('katalog.*') ? 'active fw-semibold text-white' : '' }}" href="{{ route('katalog.index') }}">
-                            <i class="bi bi-grid-fill me-1 text-crimson"></i> Katalog Suku Cadang
+                            <i class="bi bi-grid-fill me-1 text-crimson"></i> Katalog
                         </a>
                     </li>
                     <li class="nav-item w-100 w-lg-auto">
@@ -79,7 +79,7 @@
                                 <span class="input-group-text bg-dark text-crimson border-secondary">
                                     <i class="bi bi-bicycle"></i>
                                 </span>
-                                <select name="motorcycle_id" class="form-select bg-dark text-white border-secondary" style="max-width: 240px;" onchange="this.form.submit()" aria-label="Pilih Motor Anda">
+                                <select name="motorcycle_id" class="form-select bg-dark text-white border-secondary" style="max-width: 200px" onchange="this.form.submit()" aria-label="Pilih Motor Anda">
                                     <option value="">Semua Tipe Motor</option>
                                     @foreach($navMotors as $m)
                                         <option value="{{ $m->id }}" {{ session('selected_motorcycle_id') == $m->id ? 'selected' : '' }}>

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Katalog Suku Cadang')
+@section('title', 'Dashboard')
 
 @section('content')
     <h3 class="fw-bold mb-4">Daftar Suku Cadang</h3>
