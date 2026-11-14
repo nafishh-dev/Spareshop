@@ -192,7 +192,7 @@
 
                     <!-- Update Status Form (Responsif & Rata Kanan) -->
                     <div class="row justify-content-end">
-                        <div class="col-12 col-md-6 col-lg-5">
+                        <div class="col-12 col-md-6 col-lg-6">
                             <form action="{{ route('admin.orders.updateStatus', $order) }}" method="POST" class="p-3 border rounded-3 bg-white mb-0">
                                 @csrf @method('PATCH')
                                 <label class="form-label fw-semibold small mb-2">Ubah Status Pesanan</label>

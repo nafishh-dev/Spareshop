@@ -110,7 +110,7 @@
 <div class="row g-3 mb-5">
     @forelse($categories as $cat)
         <div class="col-6 col-md-3">
-            <a href="{{ route('katalog.index', ['category' => $cat->slug]) }}" class="text-decoration-none">
+            <a href="{{ route('katalog.index', ['category_id' => $cat->id]) }}" class="text-decoration-none">
                 <div class="card border-0 shadow-sm rounded-4 h-100 text-center p-3">
                     <div class="card-body">
                         <i class="bi bi-gear-wide-connected fs-2 text-crimson mb-2 d-block"></i>
@@ -179,7 +179,7 @@
                             <small class="text-muted d-block">Harga</small>
                             <span class="fs-5 fw-bold text-crimson">Rp {{ number_format($part->price, 0, ',', '.') }}</span>
                         </div>
-                        <a href="{{ route('katalog.index') }}" class="btn btn-crimson btn-sm px-3 rounded-3">
+                        <a href="{{ route('katalog.index', ['search' => $part->name]) }}" class="btn btn-crimson btn-sm px-3 rounded-3">
                             <i class="bi bi-cart-plus me-1"></i> Beli
                         </a>
                     </div>
