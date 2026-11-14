@@ -113,16 +113,23 @@
                             <fieldset>
                                 <legend class="form-label fw-semibold">Pilih layanan</legend>
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="order_type" id="order-installation" value="pasang_bengkel" data-fee="{{ $installationFee }}" @checked(old('order_type', 'pasang_bengkel') === 'pasang_bengkel')>
+                                    <input class="form-check-input" type="radio" name="service_type" id="order-installation" value="pasang_bengkel" data-fee="{{ $installationFee }}" @checked(old('service_type', 'pasang_bengkel') === 'pasang_bengkel')>
                                     <label class="form-check-label" for="order-installation">
                                         Pasang di bengkel <span class="small text-secondary">(Rp 25.000/item)</span>
                                     </label>
                                 </div>
                                 <div class="form-check mb-3">
-                                    <input class="form-check-input" type="radio" name="order_type" id="order-purchase" value="beli_saja" data-fee="0" @checked(old('order_type') === 'beli_saja')>
+                                    <input class="form-check-input" type="radio" name="service_type" id="order-purchase" value="beli_saja" data-fee="0" @checked(old('service_type') === 'beli_saja')>
                                     <label class="form-check-label" for="order-purchase">Beli sparepart saja</label>
                                 </div>
                             </fieldset>
+                            <div id="booking-date-container" class="mb-3">
+                                <label for="booking_date" class="form-label fw-semibold">Tanggal Booking Pasang</label>
+                                <input type="date" name="booking_date" id="booking_date" class="form-control" min="{{ date('Y-m-d') }}" value="{{ old('booking_date') }}">
+                                @error('booking_date')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
                             <div class="mb-3">
                                 <label for="customer-note" class="form-label fw-semibold">Catatan pelanggan</label>
                                 <textarea class="form-control" id="customer-note" name="customer_note" rows="3" placeholder="Tambahkan catatan untuk pesanan Anda">{{ old('customer_note') }}</textarea>
@@ -141,7 +148,25 @@
 
 @push('scripts')
     <script>
-        document.querySelectorAll('input[name="order_type"]').forEach((option) => {
+        const bookingDateContainer = document.getElementById('booking-date-container');
+        const bookingDateInput = document.getElementById('booking_date');
+
+        const updateCheckoutOptions = () => {
+            if (!bookingDateContainer || !bookingDateInput) {
+                return;
+            }
+
+            const selectedService = document.querySelector('input[name="service_type"]:checked');
+            const installationSelected = selectedService && selectedService.value === 'pasang_bengkel';
+
+            bookingDateContainer.classList.toggle('d-none', !installationSelected);
+            bookingDateInput.required = installationSelected;
+            if (!installationSelected) {
+                bookingDateInput.value = '';
+            }
+        };
+
+        document.querySelectorAll('input[name="service_type"]').forEach((option) => {
             option.addEventListener('change', () => {
                 const fee = Number(option.dataset.fee);
                 const subtotal = {{ $subtotal }};
@@ -149,7 +174,10 @@
 
                 document.getElementById('installation-fee').textContent = formatRupiah(fee);
                 document.getElementById('cart-total').textContent = formatRupiah(subtotal + fee);
+                updateCheckoutOptions();
             });
         });
+
+        updateCheckoutOptions();
     </script>
 @endpush

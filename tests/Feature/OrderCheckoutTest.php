@@ -33,18 +33,21 @@ class OrderCheckoutTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->post(route('orders.checkout'), [
-            'order_type' => 'pasang_bengkel',
+            'service_type' => 'pasang_bengkel',
+            'booking_date' => now()->addDay()->toDateString(),
             'customer_note' => 'Pasang dengan hati-hati',
         ]);
 
         $order = Order::firstOrFail();
 
         $response->assertRedirect(route('orders.show', $order));
+        $this->assertMatchesRegularExpression('/^INV-\d{8}-[A-Z0-9]{4}$/', $order->invoice_number);
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
             'service_fee' => 50000,
             'customer_note' => 'Pasang dengan hati-hati',
         ]);
+        $this->assertSame(now()->addDay()->toDateString(), $order->booking_date->toDateString());
         $this->assertDatabaseHas('order_items', [
             'order_id' => $order->id,
             'sparepart_id' => $sparepart->id,
@@ -61,6 +64,7 @@ class OrderCheckoutTest extends TestCase
             ->get(route('orders.show', $order))
             ->assertOk()
             ->assertSee('Pasang dengan hati-hati')
+            ->assertSee($order->booking_date->format('d/m/Y'))
             ->assertSee('Cetak Nota');
 
         $this->actingAs($user)
@@ -91,7 +95,7 @@ class OrderCheckoutTest extends TestCase
         $response = $this->actingAs($user)
             ->from(route('cart.index'))
             ->post(route('orders.checkout'), [
-                'order_type' => 'beli_saja',
+                'service_type' => 'beli_saja',
             ]);
 
         $response->assertRedirect(route('cart.index'));
@@ -106,5 +110,35 @@ class OrderCheckoutTest extends TestCase
             'sparepart_id' => $sparepart->id,
             'qty' => 2,
         ]);
+    }
+
+    public function test_installation_checkout_requires_a_booking_date(): void
+    {
+        $user = User::factory()->create();
+        $category = Category::create(['name' => 'Aki', 'slug' => 'aki']);
+        $sparepart = Sparepart::create([
+            'category_id' => $category->id,
+            'part_code' => 'AKI-TEST',
+            'name' => 'Aki Uji',
+            'brand' => 'MotoPart',
+            'price' => 100000,
+            'stock' => 2,
+        ]);
+        Cart::create([
+            'user_id' => $user->id,
+            'sparepart_id' => $sparepart->id,
+            'qty' => 1,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from(route('cart.index'))
+            ->post(route('orders.checkout'), [
+                'service_type' => 'pasang_bengkel',
+            ]);
+
+        $response->assertRedirect(route('cart.index'));
+        $response->assertSessionHasErrors('booking_date');
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('carts', 1);
     }
 }

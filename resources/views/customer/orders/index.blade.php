@@ -31,6 +31,7 @@
                             <th scope="col" class="ps-3">Nomor Pesanan</th>
                             <th scope="col">Tanggal Transaksi</th>
                             <th scope="col">Layanan</th>
+                            <th scope="col">Jadwal Pasang</th>
                             <th scope="col">Total Bayar</th>
                             <th scope="col">Status</th>
                             <th scope="col" class="text-end pe-3">Nota</th>
@@ -57,6 +58,7 @@
                                 <td class="ps-3 fw-semibold">{{ $order->invoice_number }}</td>
                                 <td class="text-nowrap">{{ $order->created_at->format('d/m/Y H:i') }}</td>
                                 <td>{{ $order->order_type === 'pasang_bengkel' ? 'Pasang di bengkel' : 'Beli saja' }}</td>
+                                <td class="text-nowrap">{{ $order->booking_date ? $order->booking_date->format('d/m/Y') : '-' }}</td>
                                 <td class="text-nowrap fw-semibold">Rp {{ number_format($orderTotal, 0, ',', '.') }}</td>
                                 <td>
                                     <span class="badge {{ $statusClasses[$order->status] ?? 'text-bg-secondary' }}">

@@ -17,7 +17,8 @@ class OrderController extends Controller
     public function checkout(Request $request)
     {
         $validated = $request->validate([
-            'order_type' => ['required', 'in:beli_saja,pasang_bengkel'],
+            'service_type' => ['required', 'in:beli_saja,pasang_bengkel'],
+            'booking_date' => ['required_if:service_type,pasang_bengkel', 'nullable', 'date', 'after_or_equal:today'],
             'customer_note' => ['nullable', 'string', 'max:5000'],
         ]);
 
@@ -49,15 +50,17 @@ class OrderController extends Controller
                 $spareparts[$cartItem->id] = $sparepart;
             }
 
-            $serviceFee = $validated['order_type'] === 'pasang_bengkel'
+            $serviceFee = $validated['service_type'] === 'pasang_bengkel'
                 ? $cartItems->sum('qty') * self::INSTALLATION_FEE_PER_UNIT
                 : 0;
 
             $order = Order::create([
                 'user_id' => $userId,
-                'invoice_number' => 'INV-'.str_replace('-', '', (string) Str::uuid()),
-                'order_type' => $validated['order_type'],
-                'booking_date' => null,
+                'invoice_number' => 'INV-'.date('Ymd').'-'.strtoupper(Str::random(4)),
+                'order_type' => $validated['service_type'],
+                'booking_date' => $validated['service_type'] === 'pasang_bengkel'
+                    ? $validated['booking_date']
+                    : null,
                 'service_fee' => $serviceFee,
                 'status' => 'pending',
                 'customer_note' => $validated['customer_note'] ?? null,
