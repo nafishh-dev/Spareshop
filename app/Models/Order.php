@@ -6,12 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    protected $casts = [
+        'booking_date' => 'date',
+    ];
+
     protected $fillable = [
         'user_id',
         'invoice_number',
         'order_type',
         'booking_date',
         'service_fee',
+        'customer_note',
         'status',
     ];
 

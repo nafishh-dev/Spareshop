@@ -1,12 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\OrderController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [CatalogController::class, 'index']);
 
 // kalau belum login
 Route::middleware('guest')->group(function () {
@@ -21,26 +22,23 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Route Customer
-    Route::get('/katalog', function () {
-        if (request()->filled('motorcycle_id')) {
-            session(['selected_motorcycle_id' => request('motorcycle_id')]);
-        }
-        return view('katalog');
-    })->name('katalog.index');
+    Route::get('/katalog', [CatalogController::class, 'index'])->name('katalog.index');
+    Route::get('/katalog/reset-motor', [CatalogController::class, 'resetMotor'])->name('katalog.resetMotor');
 
-    Route::get('/katalog/reset-motor', function () {
-        session()->forget('selected_motorcycle_id');
-        return redirect()->route('katalog.index');
-    })->name('katalog.resetMotor');
-
-    Route::get('/cart', fn () => view('customer.cart'))->name('cart.index');
-    Route::get('/orders', fn () => view('customer.orders.index'))->name('orders.index');
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
+    Route::put('/cart/{cart}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/{cart}', [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::post('/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 
     // Route Admin
     Route::get('/admin/dashboard', function () {
         if (Auth::user()->role !== 'admin') {
             abort(403, 'Akses ditolak! Halaman ini khusus Admin.');
         }
+
         return view('admin.dashboard');
     })->name('admin.dashboard');
 
