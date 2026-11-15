@@ -105,6 +105,14 @@
             border-color: #B91C1C;
             color: #fff;
         }
+
+        .pagination {
+            --bs-pagination-active-bg: #DC2626;
+            --bs-pagination-active-border-color: #DC2626;
+            --bs-pagination-color: #DC2626;
+            --bs-pagination-hover-color: #B91C1C;
+            --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.25);
+        }
     </style>
     @stack('styles')
 </head>
@@ -224,7 +232,7 @@
             </main>
 
             <footer class="bg-white border-top text-center py-3 small text-muted mt-auto px-2">
-                &copy; 2026 MotoPart Store - Panel Administrasi Bengkel &amp; Ritel
+                &copy; 2026 MotoPart Store
             </footer>
         </div>
     </div>

@@ -35,6 +35,13 @@
             border-color: #B91C1C;
             color: #fff;
         }
+        .pagination {
+            --bs-pagination-active-bg: #DC2626;
+            --bs-pagination-active-border-color: #DC2626;
+            --bs-pagination-color: #DC2626;
+            --bs-pagination-hover-color: #B91C1C;
+            --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.25);
+        }
         .footer-motopart {
             background-color: #0F172A;
             color: #94A3B8;
@@ -55,7 +62,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark navbar-motopart sticky-top py-2 shadow-sm">
         <div class="container">
             <!-- Left: Brand Logo -->
-            <a class="navbar-brand fw-bold fs-4 d-flex align-items-center gap-2" href="{{ route('katalog.index') }}">
+            <a class="navbar-brand fw-bold fs-4 d-flex align-items-center gap-2" href="{{ url('/') }}">
                 <i class="bi bi-wrench-adjustable-circle-fill text-crimson fs-3"></i>
                 <span><span class="text-white">MotoPart</span><span class="text-crimson">Store</span></span>
             </a>
@@ -202,11 +209,17 @@
                 <!-- Col 2: Kategori Populer -->
                 <div class="col-lg-3 col-md-6">
                     <h6 class="fw-bold text-white mb-3">Kategori Populer</h6>
+                    @php
+                        $footerCategories = cache()->remember('footer_categories', 3600, fn() => \App\Models\Category::take(5)->get());
+                    @endphp
                     <ul class="list-unstyled small d-flex flex-column gap-2 mb-0">
-                        <li><a href="{{ route('katalog.index') }}"><i class="bi bi-chevron-right text-crimson me-1"></i> Oli & Pelumas</a></li>
-                        <li><a href="{{ route('katalog.index') }}"><i class="bi bi-chevron-right text-crimson me-1"></i> Sistem Pengereman</a></li>
-                        <li><a href="{{ route('katalog.index') }}"><i class="bi bi-chevron-right text-crimson me-1"></i> Komponen CVT</a></li>
-                        <li><a href="{{ route('katalog.index') }}"><i class="bi bi-chevron-right text-crimson me-1"></i> Kelistrikan & Aki</a></li>
+                        @foreach($footerCategories as $fCat)
+                            <li>
+                                <a href="{{ route('katalog.index', ['category_id' => $fCat->id]) }}">
+                                    <i class="bi bi-chevron-right text-crimson me-1"></i> {{ $fCat->name }}
+                                </a>
+                            </li>
+                        @endforeach
                     </ul>
                 </div>
 
@@ -232,7 +245,7 @@
             </div>
 
             <div class="text-center pt-3 small">
-                &copy; 2026 MotoPart Store - Sistem E-Commerce &amp; Ritel
+                &copy; 2026 MotoPart Store
             </div>
         </div>
     </footer>

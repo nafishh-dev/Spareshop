@@ -41,16 +41,16 @@ class AuthController extends Controller
 
     //Proses Register Akun Baru (Create User)
     public function register(Request $request) {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:100',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:6'
+            'password' => 'required|string|min:6|confirmed'
         ]);
 
         User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
             'role' => 'customer'
         ]);
 

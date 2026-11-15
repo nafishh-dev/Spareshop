@@ -9,6 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         body {
+            min-height: 100vh;
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: #1E293B;
         }
@@ -26,7 +27,7 @@
     </style>
 </head>
 
-<body class="d-flex align-items-center vh-100">
+<body class="d-flex align-items-center py-4">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-4">
@@ -66,11 +67,18 @@
                                     <input type="email" name="email" class="form-control border-start-0" placeholder="nama@email.com" required>
                                 </div>
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-2">
                                 <label class="form-label small fw-semibold">Password</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
-                                     <input type="password" name="password" class="form-control" required minlength="6" placeholder="Min. 6 Karakter">
+                                    <input type="password" name="password" class="form-control" required minlength="6" placeholder="Min. 6 Karakter" autocomplete="new-password">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Konfirmasi Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                                    <input type="password" name="password_confirmation" class="form-control" required minlength="6" placeholder="Ulangi password" autocomplete="new-password">
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-crimson w-100">Daftar</button>

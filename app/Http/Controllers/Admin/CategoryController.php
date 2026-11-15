@@ -24,6 +24,7 @@ class CategoryController extends Controller
         $data['slug'] = Str::slug($data['name']);
 
         Category::create($data);
+        cache()->forget('footer_categories');
 
         return redirect()->route('categories.index')->with('success', 'Kategori berhasil ditambahkan.');
     }
@@ -37,6 +38,7 @@ class CategoryController extends Controller
         $data['slug'] = Str::slug($data['name']);
 
         $category->update($data);
+        cache()->forget('footer_categories');
 
         return redirect()->route('categories.index')->with('success', 'Kategori berhasil diperbarui.');
     }
@@ -48,6 +50,7 @@ class CategoryController extends Controller
         }
 
         $category->delete();
+        cache()->forget('footer_categories');
 
         return redirect()->route('categories.index')->with('success', 'Kategori berhasil dihapus.');
     }

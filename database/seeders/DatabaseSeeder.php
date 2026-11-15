@@ -114,7 +114,7 @@ class DatabaseSeeder extends Seeder
         // 5. Sample Order
         $order = Order::create([
             'user_id' => $customer->id,
-            'invoice_number' => 'INV-20261109-001',
+            'invoice_number' => 'INV-20261109-ABCD',
             'order_type' => 'pasang_bengkel',
             'booking_date' => now()->addDays(2)->toDateString(),
             'service_fee' => 25000,
