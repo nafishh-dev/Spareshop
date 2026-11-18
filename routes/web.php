@@ -8,7 +8,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\OrderController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -40,17 +39,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 
     // Route Admin
-    Route::get('/admin/dashboard', function () {
-        if (Auth::user()->role !== 'admin') {
-            abort(403, 'Akses ditolak! Halaman ini khusus Admin.');
-        }
-
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
-
-    Route::resource('/admin/categories', CategoryController::class)->except(['create', 'show', 'edit'])->names('categories');
-    Route::resource('/admin/motorcycles', MotorcycleController::class)->except(['create', 'show', 'edit'])->names('motorcycles');
-    Route::resource('/admin/spareparts', SparepartController::class)->names('spareparts');
-    Route::get('/admin/orders', [AdminOrderController::class, 'index'])->name('admin.orders.index');
-    Route::patch('/admin/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('admin.orders.updateStatus');
+    Route::prefix('admin')->middleware('admin')->group(function () {
+        Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
+        Route::resource('/categories', CategoryController::class)->except(['create', 'show', 'edit'])->names('categories');
+        Route::resource('/motorcycles', MotorcycleController::class)->except(['create', 'show', 'edit'])->names('motorcycles');
+        Route::resource('/spareparts', SparepartController::class)->names('spareparts');
+        Route::get('/orders', [AdminOrderController::class, 'index'])->name('admin.orders.index');
+        Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('admin.orders.updateStatus');
+    });
 });

@@ -1,0 +1,43 @@
+# Git & editor metadata
+.git
+.gitignore
+.gitattributes
+.editorconfig
+.fleet
+.idea
+.nova
+.vscode
+.zed
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+auth.json
+storage/*.key
+
+# Local databases
+database/*.sqlite
+database/*.sqlite-*
+
+# Host dependencies & local caches
+/vendor
+/node_modules
+/public/hot
+/public/storage
+bootstrap/cache/*.php
+
+# Runtime logs, sessions & compiled views
+*.log
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/testing/*
+storage/framework/views/*
+!storage/**/.gitignore
+
+# Test suite & caches
+/tests
+phpunit.xml
+.phpunit.cache
+.phpunit.result.cache
