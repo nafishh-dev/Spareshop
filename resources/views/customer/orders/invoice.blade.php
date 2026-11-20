@@ -96,7 +96,12 @@
                     <div class="fw-semibold">
                         {{ $order->order_type === 'pasang_bengkel' ? 'Pasang di bengkel' : 'Beli sparepart saja' }}
                     </div>
-                    <div>Jadwal Pasang: {{ $order->booking_date ? $order->booking_date->format('d/m/Y') : '-' }}</div>
+                    <div>
+                        Jadwal Pasang: {{ $order->booking_date ? $order->booking_date->format('d/m/Y') : '-' }}
+                        @if($order->booking_time)
+                            ({{ $order->booking_time }})
+                        @endif
+                    </div>
                     <div class="mt-2">
                         <span class="text-secondary">Catatan pelanggan:</span>
                         <p class="mb-0">{{ $order->customer_note ?: 'Tidak ada catatan.' }}</p>

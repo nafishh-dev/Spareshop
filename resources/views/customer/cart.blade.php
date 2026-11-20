@@ -123,12 +123,26 @@
                                     <label class="form-check-label" for="order-purchase">Beli sparepart saja</label>
                                 </div>
                             </fieldset>
-                            <div id="booking-date-container" class="mb-3">
-                                <label for="booking_date" class="form-label fw-semibold">Tanggal Booking Pasang</label>
-                                <input type="date" name="booking_date" id="booking_date" class="form-control" min="{{ date('Y-m-d') }}" value="{{ old('booking_date') }}">
-                                @error('booking_date')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
+                            <div id="booking-schedule-container" class="mb-3">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label for="booking_date" class="form-label fw-semibold">Tanggal Booking Pasang</label>
+                                        <input type="date" name="booking_date" id="booking_date" class="form-control" min="{{ date('Y-m-d') }}" value="{{ old('booking_date') }}">
+                                        @error('booking_date')
+                                            <div class="text-danger small mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="booking_time" class="form-label fw-semibold">Sesi Jam Booking</label>
+                                        <select name="booking_time" id="booking_time" class="form-select" disabled>
+                                            <option value="">Pilih tanggal terlebih dahulu</option>
+                                        </select>
+                                        @error('booking_time')
+                                            <div class="text-danger small mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div id="booking-slot-feedback" class="form-text" aria-live="polite"></div>
                             </div>
                             <div class="mb-3">
                                 <label for="customer-note" class="form-label fw-semibold">Catatan pelanggan</label>
@@ -148,23 +162,95 @@
 
 @push('scripts')
     <script>
-        const bookingDateContainer = document.getElementById('booking-date-container');
+        const bookingScheduleContainer = document.getElementById('booking-schedule-container');
         const bookingDateInput = document.getElementById('booking_date');
+        const bookingTimeInput = document.getElementById('booking_time');
+        const bookingSlotFeedback = document.getElementById('booking-slot-feedback');
+        const bookingSlotsUrl = @json(route('booking.slots'));
+        let bookingSlotsRequest;
+        let preferredBookingTime = @json(old('booking_time'));
 
         const updateCheckoutOptions = () => {
-            if (!bookingDateContainer || !bookingDateInput) {
+            if (!bookingScheduleContainer || !bookingDateInput || !bookingTimeInput) {
                 return;
             }
 
             const selectedService = document.querySelector('input[name="service_type"]:checked');
             const installationSelected = selectedService && selectedService.value === 'pasang_bengkel';
 
-            bookingDateContainer.classList.toggle('d-none', !installationSelected);
+            bookingScheduleContainer.classList.toggle('d-none', !installationSelected);
             bookingDateInput.required = installationSelected;
+            bookingTimeInput.required = installationSelected;
             if (!installationSelected) {
                 bookingDateInput.value = '';
+                bookingTimeInput.value = '';
+                bookingTimeInput.disabled = true;
+                bookingTimeInput.replaceChildren(new Option('Pilih tanggal terlebih dahulu', ''));
+                bookingSlotFeedback.textContent = '';
+                if (bookingSlotsRequest) {
+                    bookingSlotsRequest.abort();
+                }
+            } else if (bookingDateInput.value) {
+                loadBookingSlots();
             }
         };
+
+        const loadBookingSlots = async () => {
+            if (!bookingDateInput.value || bookingScheduleContainer.classList.contains('d-none')) {
+                return;
+            }
+
+            if (bookingSlotsRequest) {
+                bookingSlotsRequest.abort();
+            }
+            bookingSlotsRequest = new AbortController();
+            bookingTimeInput.disabled = true;
+            bookingTimeInput.replaceChildren(new Option('Memuat kuota sesi...', ''));
+            bookingSlotFeedback.textContent = '';
+
+            try {
+                const url = new URL(bookingSlotsUrl);
+                url.searchParams.set('date', bookingDateInput.value);
+                const response = await fetch(url, { signal: bookingSlotsRequest.signal });
+                if (!response.ok) {
+                    throw new Error('Kuota sesi tidak dapat dimuat.');
+                }
+
+                const result = await response.json();
+                bookingTimeInput.replaceChildren(new Option('Pilih sesi jam', ''));
+                let hasAvailableSlot = false;
+
+                result.slots.forEach((slot) => {
+                    const option = new Option(
+                        slot.available
+                            ? `${slot.slot} (Sisa ${slot.remaining} slot)`
+                            : `${slot.slot} (Penuh)`,
+                        slot.slot
+                    );
+                    option.disabled = !slot.available;
+                    if (preferredBookingTime === slot.slot && slot.available) {
+                        option.selected = true;
+                        preferredBookingTime = '';
+                    }
+                    hasAvailableSlot = hasAvailableSlot || slot.available;
+                    bookingTimeInput.add(option);
+                });
+
+                bookingTimeInput.disabled = !hasAvailableSlot;
+                if (!hasAvailableSlot) {
+                    bookingSlotFeedback.textContent = 'Semua sesi pada tanggal ini sudah penuh.';
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    bookingTimeInput.replaceChildren(new Option('Kuota sesi tidak tersedia', ''));
+                    bookingSlotFeedback.textContent = error.message;
+                }
+            }
+        };
+
+        if (bookingDateInput) {
+            bookingDateInput.addEventListener('change', loadBookingSlots);
+        }
 
         document.querySelectorAll('input[name="service_type"]').forEach((option) => {
             option.addEventListener('change', () => {

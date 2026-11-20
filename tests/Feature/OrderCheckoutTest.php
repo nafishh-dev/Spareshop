@@ -33,9 +33,18 @@ class OrderCheckoutTest extends TestCase
             'qty' => 2,
         ]);
 
+        $bookingDate = now()->addDay()->toDateString();
+        $this->actingAs($user)
+            ->getJson(route('booking.slots', ['date' => $bookingDate]))
+            ->assertOk()
+            ->assertJsonPath('slots.0.booked', 0)
+            ->assertJsonPath('slots.0.remaining', 2)
+            ->assertJsonPath('slots.0.available', true);
+
         $response = $this->actingAs($user)->post(route('orders.checkout'), [
             'service_type' => 'pasang_bengkel',
-            'booking_date' => now()->addDay()->toDateString(),
+            'booking_date' => $bookingDate,
+            'booking_time' => Order::BOOKING_SLOTS[0],
             'customer_note' => 'Pasang dengan hati-hati',
         ]);
 
@@ -49,6 +58,7 @@ class OrderCheckoutTest extends TestCase
             'customer_note' => 'Pasang dengan hati-hati',
         ]);
         $this->assertSame(now()->addDay()->toDateString(), $order->booking_date->toDateString());
+        $this->assertSame(Order::BOOKING_SLOTS[0], $order->booking_time);
         $this->assertDatabaseHas('order_items', [
             'order_id' => $order->id,
             'sparepart_id' => $sparepart->id,
@@ -66,13 +76,22 @@ class OrderCheckoutTest extends TestCase
             ->assertOk()
             ->assertSee('Pasang dengan hati-hati')
             ->assertSee($order->booking_date->format('d/m/Y'))
+            ->assertSee(Order::BOOKING_SLOTS[0])
             ->assertSee('Cetak Nota');
 
         $this->actingAs($user)
             ->get(route('orders.index'))
             ->assertOk()
             ->assertSee($order->invoice_number)
+            ->assertSee(Order::BOOKING_SLOTS[0])
             ->assertSee('Lihat & Cetak Nota');
+
+        $this->actingAs($user)
+            ->getJson(route('booking.slots', ['date' => $bookingDate]))
+            ->assertOk()
+            ->assertJsonPath('slots.0.booked', 1)
+            ->assertJsonPath('slots.0.remaining', 1)
+            ->assertJsonPath('slots.0.available', true);
     }
 
     public function test_checkout_rejects_insufficient_stock_without_creating_an_order(): void
@@ -143,6 +162,40 @@ class OrderCheckoutTest extends TestCase
         $this->assertDatabaseCount('carts', 1);
     }
 
+    public function test_purchase_checkout_does_not_store_booking_schedule(): void
+    {
+        $user = User::factory()->create();
+        $category = Category::create(['name' => 'Kelistrikan', 'slug' => 'kelistrikan']);
+        $sparepart = Sparepart::create([
+            'category_id' => $category->id,
+            'part_code' => 'AKI-BELI',
+            'name' => 'Aki tanpa pemasangan',
+            'brand' => 'MotoPart',
+            'price' => 100000,
+            'stock' => 2,
+        ]);
+        Cart::create([
+            'user_id' => $user->id,
+            'sparepart_id' => $sparepart->id,
+            'qty' => 1,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('orders.checkout'), [
+            'service_type' => 'beli_saja',
+            'booking_date' => 'invalid-date',
+            'booking_time' => '08:00 - 09:00',
+        ]);
+
+        $order = Order::firstOrFail();
+        $response->assertRedirect(route('orders.show', $order));
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'booking_date' => null,
+            'booking_time' => null,
+            'service_fee' => 0,
+        ]);
+    }
+
     public function test_customer_cancels_pending_order_and_stock_is_restored(): void
     {
         $user = User::factory()->create();
@@ -187,5 +240,114 @@ class OrderCheckoutTest extends TestCase
             ->assertOk()
             ->assertSee('Dibatalkan')
             ->assertDontSee('Batalkan Pesanan');
+    }
+
+    public function test_checkout_is_rejected_when_booking_slot_quota_is_full(): void
+    {
+        $user = User::factory()->create();
+        $category = Category::create(['name' => 'Rem', 'slug' => 'rem-kuota']);
+        $sparepart = Sparepart::create([
+            'category_id' => $category->id,
+            'part_code' => 'REM-QUOTA',
+            'name' => 'Kampas Rem Kuota',
+            'brand' => 'MotoPart',
+            'price' => 45000,
+            'stock' => 5,
+        ]);
+        $bookingDate = now()->addDays(2)->toDateString();
+
+        foreach (range(1, Order::MAX_SLOT_QUOTA) as $number) {
+            Order::create([
+                'user_id' => $user->id,
+                'invoice_number' => "INV-FULL-{$number}",
+                'order_type' => 'pasang_bengkel',
+                'booking_date' => $bookingDate,
+                'booking_time' => Order::BOOKING_SLOTS[0],
+                'status' => 'pending',
+            ]);
+        }
+
+        Cart::create([
+            'user_id' => $user->id,
+            'sparepart_id' => $sparepart->id,
+            'qty' => 1,
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('cart.index'))
+            ->post(route('orders.checkout'), [
+                'service_type' => 'pasang_bengkel',
+                'booking_date' => $bookingDate,
+                'booking_time' => Order::BOOKING_SLOTS[0],
+            ])
+            ->assertRedirect(route('cart.index'))
+            ->assertSessionHasErrors('booking_time');
+
+        $this->assertDatabaseCount('orders', Order::MAX_SLOT_QUOTA);
+        $this->assertDatabaseHas('spareparts', [
+            'id' => $sparepart->id,
+            'stock' => 5,
+        ]);
+        $this->assertDatabaseHas('carts', [
+            'user_id' => $user->id,
+            'sparepart_id' => $sparepart->id,
+            'qty' => 1,
+        ]);
+    }
+
+    public function test_cancelled_order_releases_booking_slot_quota(): void
+    {
+        $user = User::factory()->create();
+        $category = Category::create(['name' => 'Aki', 'slug' => 'aki-kuota']);
+        $sparepart = Sparepart::create([
+            'category_id' => $category->id,
+            'part_code' => 'AKI-QUOTA',
+            'name' => 'Aki Kuota',
+            'brand' => 'MotoPart',
+            'price' => 100000,
+            'stock' => 5,
+        ]);
+        $bookingDate = now()->addDays(3)->toDateString();
+        $orders = collect();
+
+        foreach (range(1, Order::MAX_SLOT_QUOTA) as $number) {
+            $orders->push(Order::create([
+                'user_id' => $user->id,
+                'invoice_number' => "INV-CANCELLED-{$number}",
+                'order_type' => 'pasang_bengkel',
+                'booking_date' => $bookingDate,
+                'booking_time' => Order::BOOKING_SLOTS[1],
+                'status' => 'pending',
+            ]));
+        }
+
+        $orders->first()->update(['status' => 'batal']);
+        Cart::create([
+            'user_id' => $user->id,
+            'sparepart_id' => $sparepart->id,
+            'qty' => 1,
+        ]);
+
+        $this->actingAs($user)
+            ->getJson(route('booking.slots', ['date' => $bookingDate]))
+            ->assertOk()
+            ->assertJsonPath('slots.1.booked', 1)
+            ->assertJsonPath('slots.1.remaining', 1)
+            ->assertJsonPath('slots.1.available', true);
+
+        $response = $this->actingAs($user)->post(route('orders.checkout'), [
+            'service_type' => 'pasang_bengkel',
+            'booking_date' => $bookingDate,
+            'booking_time' => Order::BOOKING_SLOTS[1],
+        ]);
+
+        $newOrder = Order::where('invoice_number', 'not like', 'INV-CANCELLED-%')->firstOrFail();
+        $response->assertRedirect(route('orders.show', $newOrder));
+        $this->assertDatabaseHas('orders', [
+            'id' => $newOrder->id,
+            'booking_time' => Order::BOOKING_SLOTS[1],
+            'status' => 'pending',
+        ]);
+        $this->assertSame($bookingDate, $newOrder->fresh()->booking_date->toDateString());
     }
 }

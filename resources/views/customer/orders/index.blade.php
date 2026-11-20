@@ -58,7 +58,12 @@
                                 <td class="ps-3 fw-semibold">{{ $order->invoice_number }}</td>
                                 <td class="text-nowrap">{{ $order->created_at->format('d/m/Y H:i') }}</td>
                                 <td>{{ $order->order_type === 'pasang_bengkel' ? 'Pasang di bengkel' : 'Beli saja' }}</td>
-                                <td class="text-nowrap">{{ $order->booking_date ? $order->booking_date->format('d/m/Y') : '-' }}</td>
+                                <td class="text-nowrap">
+                                    {{ $order->booking_date ? $order->booking_date->format('d/m/Y') : '-' }}
+                                    @if($order->booking_time)
+                                        <span class="text-secondary">({{ $order->booking_time }})</span>
+                                    @endif
+                                </td>
                                 <td class="text-nowrap fw-semibold">Rp {{ number_format($orderTotal, 0, ',', '.') }}</td>
                                 <td>
                                     <span class="badge {{ $statusClasses[$order->status] ?? 'text-bg-secondary' }}">

@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    public const BOOKING_SLOTS = ['09:00 - 11:00', '13:00 - 15:00', '15:30 - 17:30'];
+
+    public const MAX_SLOT_QUOTA = 2;
+
     protected $casts = [
         'booking_date' => 'date',
     ];
@@ -15,6 +19,7 @@ class Order extends Model
         'invoice_number',
         'order_type',
         'booking_date',
+        'booking_time',
         'service_fee',
         'customer_note',
         'status',
