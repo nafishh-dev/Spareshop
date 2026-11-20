@@ -45,7 +45,7 @@
             'pending' => 'text-bg-warning',
             'diproses' => 'text-bg-primary',
             'selesai' => 'text-bg-success',
-            'batal' => 'text-bg-danger',
+            'batal' => 'bg-danger',
         ];
     @endphp
 
@@ -53,6 +53,13 @@
         <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i>Riwayat Pesanan
         </a>
+        @if($order->status === 'pending')
+            <form action="{{ route('orders.cancel', $order) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini? Stok sparepart akan dikembalikan.')">
+                @csrf
+                @method('PATCH')
+                <button type="submit" class="btn btn-outline-danger">Batalkan Pesanan</button>
+            </form>
+        @endif
         <button type="button" class="btn btn-crimson" onclick="window.print()">
             <i class="bi bi-printer me-1"></i>Cetak Nota
         </button>

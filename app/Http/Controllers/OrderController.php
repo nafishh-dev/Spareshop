@@ -109,4 +109,41 @@ class OrderController extends Controller
 
         return view('customer.orders.invoice', compact('order', 'total'));
     }
+
+    public function cancel(Order $order)
+    {
+        abort_if($order->user_id !== auth()->id(), 403);
+
+        if ($order->status !== 'pending') {
+            return back()->with('error', 'Pesanan ini tidak dapat dibatalkan.');
+        }
+
+        $cancelled = DB::transaction(function () use ($order) {
+            $lockedOrder = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+            if ($lockedOrder->user_id !== auth()->id()) {
+                abort(403);
+            }
+
+            if ($lockedOrder->status !== 'pending') {
+                return false;
+            }
+
+            foreach ($lockedOrder->items as $item) {
+                Sparepart::whereKey($item->sparepart_id)
+                    ->lockForUpdate()
+                    ->increment('stock', $item->qty);
+            }
+
+            $lockedOrder->update(['status' => 'batal']);
+
+            return true;
+        }, 5);
+
+        if (! $cancelled) {
+            return back()->with('error', 'Pesanan ini tidak dapat dibatalkan.');
+        }
+
+        return back()->with('success', 'Pesanan berhasil dibatalkan dan stok sparepart telah dikembalikan.');
+    }
 }

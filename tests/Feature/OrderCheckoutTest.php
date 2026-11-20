@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Cart;
 use App\Models\Category;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Sparepart;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -140,5 +141,51 @@ class OrderCheckoutTest extends TestCase
         $response->assertSessionHasErrors('booking_date');
         $this->assertDatabaseCount('orders', 0);
         $this->assertDatabaseCount('carts', 1);
+    }
+
+    public function test_customer_cancels_pending_order_and_stock_is_restored(): void
+    {
+        $user = User::factory()->create();
+        $category = Category::create(['name' => 'Oli', 'slug' => 'oli']);
+        $sparepart = Sparepart::create([
+            'category_id' => $category->id,
+            'part_code' => 'OLI-CANCEL',
+            'name' => 'Oli untuk pembatalan',
+            'brand' => 'MotoPart',
+            'price' => 50000,
+            'stock' => 3,
+        ]);
+        $order = Order::create([
+            'user_id' => $user->id,
+            'invoice_number' => 'INV-CANCEL-001',
+            'order_type' => 'beli_saja',
+            'status' => 'pending',
+        ]);
+        OrderItem::create([
+            'order_id' => $order->id,
+            'sparepart_id' => $sparepart->id,
+            'qty' => 2,
+            'unit_price' => 50000,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from(route('orders.index'))
+            ->patch(route('orders.cancel', $order));
+
+        $response->assertRedirect(route('orders.index'));
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => 'batal',
+        ]);
+        $this->assertDatabaseHas('spareparts', [
+            'id' => $sparepart->id,
+            'stock' => 5,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('orders.show', $order))
+            ->assertOk()
+            ->assertSee('Dibatalkan')
+            ->assertDontSee('Batalkan Pesanan');
     }
 }

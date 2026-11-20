@@ -17,10 +17,21 @@ class CatalogController extends Controller
             'search' => ['nullable', 'string', 'max:255'],
         ]);
 
-        if ($request->filled('motorcycle_id')) {
+        if ($request->exists('motorcycle_id') && $request->filled('motorcycle_id')) {
             session(['selected_motorcycle_id' => $request->input('motorcycle_id')]);
-        } else {
+            session()->forget('motor_filter_cleared');
+        } elseif ($request->exists('motorcycle_id')) {
             session()->forget('selected_motorcycle_id');
+            session(['motor_filter_cleared' => true]);
+        }
+
+        if (
+            auth()->check()
+            && auth()->user()->motorcycle_id
+            && ! session()->has('selected_motorcycle_id')
+            && ! session()->has('motor_filter_cleared')
+        ) {
+            session(['selected_motorcycle_id' => auth()->user()->motorcycle_id]);
         }
 
         $selectedMotor = session('selected_motorcycle_id')
@@ -55,6 +66,7 @@ class CatalogController extends Controller
     public function resetMotor()
     {
         session()->forget('selected_motorcycle_id');
+        session(['motor_filter_cleared' => true]);
 
         return redirect()->route('katalog.index');
     }

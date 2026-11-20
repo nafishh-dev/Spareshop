@@ -23,6 +23,8 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
+        'address',
+        'motorcycle_id',
         'role',
     ];
 
@@ -34,6 +36,11 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function motorcycle()
+    {
+        return $this->belongsTo(Motorcycle::class);
     }
 
     /**

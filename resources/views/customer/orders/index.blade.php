@@ -50,7 +50,7 @@
                                     'pending' => 'text-bg-warning',
                                     'diproses' => 'text-bg-primary',
                                     'selesai' => 'text-bg-success',
-                                    'batal' => 'text-bg-danger',
+                                    'batal' => 'bg-danger',
                                 ];
                                 $orderTotal = $order->items->sum(fn ($item) => $item->qty * $item->unit_price) + $order->service_fee;
                             @endphp
@@ -66,9 +66,18 @@
                                     </span>
                                 </td>
                                 <td class="text-end pe-3">
-                                    <a href="{{ route('orders.show', $order) }}" class="btn btn-sm btn-crimson">
-                                        <i class="bi bi-receipt me-1"></i>Lihat &amp; Cetak Nota
-                                    </a>
+                                    <div class="d-flex flex-wrap justify-content-end gap-2">
+                                        <a href="{{ route('orders.show', $order) }}" class="btn btn-sm btn-crimson">
+                                            <i class="bi bi-receipt me-1"></i>Lihat &amp; Cetak Nota
+                                        </a>
+                                        @if($order->status === 'pending')
+                                            <form action="{{ route('orders.cancel', $order) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini? Stok sparepart akan dikembalikan.')">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">Batalkan Pesanan</button>
+                                            </form>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
