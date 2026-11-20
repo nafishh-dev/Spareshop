@@ -34,7 +34,7 @@
                             <th scope="col">Jadwal Pasang</th>
                             <th scope="col">Total Bayar</th>
                             <th scope="col">Status</th>
-                            <th scope="col" class="text-end pe-3">Nota</th>
+                            <th scope="col" class="text-end pe-3">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -53,6 +53,9 @@
                                     'batal' => 'bg-danger',
                                 ];
                                 $orderTotal = $order->items->sum(fn ($item) => $item->qty * $item->unit_price) + $order->service_fee;
+                                $allItemsReviewed = $order->items->every(
+                                    fn ($item) => $order->reviews->contains('sparepart_id', $item->sparepart_id)
+                                );
                             @endphp
                             <tr>
                                 <td class="ps-3 fw-semibold">{{ $order->invoice_number }}</td>
@@ -75,6 +78,15 @@
                                         <a href="{{ route('orders.show', $order) }}" class="btn btn-sm btn-crimson">
                                             <i class="bi bi-receipt me-1"></i>Lihat &amp; Cetak Nota
                                         </a>
+                                        @if($order->status === 'selesai')
+                                            <a href="{{ route('orders.review', $order) }}" class="btn btn-sm {{ $allItemsReviewed ? 'btn-outline-secondary' : 'btn-warning' }}">
+                                                @if($allItemsReviewed)
+                                                    <i class="bi bi-check-lg me-1"></i>Sudah Diulas
+                                                @else
+                                                    <i class="bi bi-star-fill me-1"></i>Beri Ulasan
+                                                @endif
+                                            </a>
+                                        @endif
                                         @if($order->status === 'pending')
                                             <form action="{{ route('orders.cancel', $order) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini? Stok sparepart akan dikembalikan.')">
                                                 @csrf

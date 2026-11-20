@@ -25,4 +25,9 @@ class Sparepart extends Model
     {
         return $this->belongsToMany(Motorcycle::class, 'sparepart_motorcycle');
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(SparepartReview::class);
+    }
 }

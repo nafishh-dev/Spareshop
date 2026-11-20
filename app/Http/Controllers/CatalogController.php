@@ -38,7 +38,9 @@ class CatalogController extends Controller
             ? Motorcycle::find(session('selected_motorcycle_id'))
             : null;
 
-        $query = Sparepart::with(['category', 'motorcycles']);
+        $query = Sparepart::with(['category', 'motorcycles'])
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews');
 
         if ($selectedMotor) {
             $query->whereHas('motorcycles', fn ($query) => $query->where('motorcycles.id', $selectedMotor->id));
@@ -61,6 +63,18 @@ class CatalogController extends Controller
         $categories = Category::orderBy('name')->get();
 
         return view('customer.katalog', compact('spareparts', 'categories', 'selectedMotor'));
+    }
+
+    public function show(Sparepart $sparepart)
+    {
+        $sparepart->load([
+            'category',
+            'motorcycles',
+            'reviews' => fn ($query) => $query->with('user')->latest(),
+        ]);
+        $sparepart->loadAvg('reviews', 'rating')->loadCount('reviews');
+
+        return view('customer.catalog.show', compact('sparepart'));
     }
 
     public function resetMotor()

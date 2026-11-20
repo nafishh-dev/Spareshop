@@ -9,11 +9,13 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SparepartReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('/catalog/{sparepart}', [CatalogController::class, 'show'])->name('catalog.show');
 
 // kalau belum login
 Route::middleware('guest')->group(function () {
@@ -38,6 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/checkout', [OrderController::class, 'store'])->name('orders.checkout');
     Route::get('/booking-slots', [OrderController::class, 'availableSlots'])->name('booking.slots');
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}/review', [OrderController::class, 'review'])->name('orders.review');
+    Route::post('/orders/{order}/items/{sparepart}/review', [SparepartReviewController::class, 'store'])->name('orders.items.review');
     Route::patch('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

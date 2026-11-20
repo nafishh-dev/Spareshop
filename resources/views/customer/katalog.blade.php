@@ -69,6 +69,12 @@
                             <span class="badge rounded-pill bg-light text-dark border align-self-start mb-2">{{ $part->category->name }}</span>
                         @endif
                         <p class="text-crimson fw-bold mb-1">Rp {{ number_format($part->price, 0, ',', '.') }}</p>
+                        <div class="mb-2">
+                            <span class="badge text-bg-warning">
+                                <i class="bi bi-star-fill me-1"></i>{{ number_format((float) $part->reviews_avg_rating, 1) }}
+                            </span>
+                            <span class="small text-secondary">{{ $part->reviews_count }} ulasan</span>
+                        </div>
                         <p class="small text-secondary mb-2">Stok: {{ $part->stock }}</p>
                         <div class="mb-3">
                             <span class="small fw-semibold d-block mb-1">Kompatibel dengan:</span>
@@ -80,14 +86,19 @@
                                 <span class="small text-secondary">Belum ada data kompatibilitas.</span>
                             @endforelse
                         </div>
-                        <form action="{{ route('cart.store') }}" method="POST" class="mt-auto">
-                            @csrf
-                            <input type="hidden" name="sparepart_id" value="{{ $part->id }}">
-                            <input type="hidden" name="qty" value="1">
-                            <button type="submit" class="btn btn-crimson w-100" @disabled($part->stock < 1)>
-                                <i class="bi bi-cart-plus me-1"></i>Tambah ke Keranjang
-                            </button>
-                        </form>
+                        <div class="mt-auto d-grid gap-2">
+                            <a href="{{ route('catalog.show', $part) }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-eye me-1"></i>Detail
+                            </a>
+                            <form action="{{ route('cart.store') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="sparepart_id" value="{{ $part->id }}">
+                                <input type="hidden" name="qty" value="1">
+                                <button type="submit" class="btn btn-crimson w-100" @disabled($part->stock < 1)>
+                                    <i class="bi bi-cart-plus me-1"></i>Tambah ke Keranjang
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </article>
             </div>

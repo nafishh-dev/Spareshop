@@ -148,12 +148,22 @@ class OrderController extends Controller
 
     public function index()
     {
-        $orders = Order::with('items')
+        $orders = Order::with(['items', 'reviews'])
             ->where('user_id', auth()->id())
             ->latest()
             ->get();
 
         return view('customer.orders.index', compact('orders'));
+    }
+
+    public function review(Order $order)
+    {
+        abort_if($order->user_id !== auth()->id(), 403);
+        abort_unless($order->status === 'selesai', 403);
+
+        $order->load(['items.sparepart', 'reviews']);
+
+        return view('customer.orders.review', compact('order'));
     }
 
     public function show(Order $order)
