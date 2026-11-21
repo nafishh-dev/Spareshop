@@ -12,9 +12,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SparepartReviewController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::view('/', 'welcome');
 Route::get('/catalog/{sparepart}', [CatalogController::class, 'show'])->name('catalog.show');
 
 // kalau belum login
