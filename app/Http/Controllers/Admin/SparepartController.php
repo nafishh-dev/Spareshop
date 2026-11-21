@@ -16,8 +16,11 @@ class SparepartController extends Controller
         $query = Sparepart::with('category');
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('part_code', 'like', '%' . $request->search . '%');
+            $search = trim((string) $request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('part_code', 'like', '%' . $search . '%');
+            });
         }
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);

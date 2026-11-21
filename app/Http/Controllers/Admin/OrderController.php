@@ -23,7 +23,7 @@ class OrderController extends Controller
         }
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim((string) $request->input('search'));
             $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
                   ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%"));
@@ -72,6 +72,10 @@ class OrderController extends Controller
 
         if ($result === 'locked') {
             return back()->with('error', "Status pesanan {$order->invoice_number} sudah final dan tidak dapat diubah lagi.");
+        }
+
+        if ($result === 'unchanged') {
+            return back()->with('error', "Status pesanan {$order->invoice_number} tidak berubah karena sudah berstatus " . ucfirst($validated['status']) . '.');
         }
 
         if ($result === 'cancelled') {

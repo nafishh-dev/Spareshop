@@ -4,11 +4,14 @@
 
 @section('content')
 <div class="d-flex align-items-center gap-3 mb-4">
-    <a href="{{ route('spareparts.index') }}" class="btn btn-outline-secondary btn-sm rounded-3">
-        <i class="bi bi-arrow-left"></i>
+    <a href="{{ route('spareparts.index') }}"
+       class="btn btn-outline-secondary btn-sm rounded-3 admin-icon-btn"
+       title="Kembali ke daftar sparepart"
+       aria-label="Kembali ke daftar sparepart">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i>
     </a>
     <div>
-        <h5 class="fw-bold mb-0">Tambah Sparepart</h5>
+        <h1 class="h5 fw-bold mb-0">Tambah Sparepart</h1>
         <small class="text-muted">Isi form berikut untuk menambah produk baru</small>
     </div>
 </div>
@@ -19,48 +22,48 @@
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-body p-4">
-                    <h6 class="fw-bold mb-3">Informasi Produk</h6>
+                    <h2 class="h6 fw-bold mb-3">Informasi Produk</h2>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Nama Sparepart <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
+                            <label for="name" class="form-label fw-semibold small">Nama Sparepart <span class="text-danger">*</span></label>
+                            <input type="text" id="name" name="name" class="form-control @error('name') is-invalid @enderror"
                                    value="{{ old('name') }}" placeholder="cth. Oli AHM MPX2 0.8L" required>
                             @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Kode Part <span class="text-danger">*</span></label>
-                            <input type="text" name="part_code" class="form-control @error('part_code') is-invalid @enderror"
+                            <label for="part_code" class="form-label fw-semibold small">Kode Part <span class="text-danger">*</span></label>
+                            <input type="text" id="part_code" name="part_code" class="form-control @error('part_code') is-invalid @enderror"
                                    value="{{ old('part_code') }}" placeholder="cth. OLI-AHM-MPX2" required>
                             @error('part_code')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Merk <span class="text-danger">*</span></label>
-                            <input type="text" name="brand" class="form-control @error('brand') is-invalid @enderror"
+                            <label for="brand" class="form-label fw-semibold small">Merk <span class="text-danger">*</span></label>
+                            <input type="text" id="brand" name="brand" class="form-control @error('brand') is-invalid @enderror"
                                    value="{{ old('brand') }}" placeholder="cth. AHM" required>
                             @error('brand')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Kategori <span class="text-danger">*</span></label>
-                            <select name="category_id" class="form-select @error('category_id') is-invalid @enderror" required>
-                                <option value="">-- Pilih Kategori --</option>
+                            <label for="category_id" class="form-label fw-semibold small">Kategori <span class="text-danger">*</span></label>
+                            <select id="category_id" name="category_id" class="form-select @error('category_id') is-invalid @enderror" required>
+                                <option value="">Pilih Kategori</option>
                                 @foreach($categories as $cat)
-                                    <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                                    <option value="{{ $cat->id }}" {{ (string) old('category_id') === (string) $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                                 @endforeach
                             </select>
                             @error('category_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Harga (Rp) <span class="text-danger">*</span></label>
+                            <label for="price" class="form-label fw-semibold small">Harga (Rp) <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">Rp</span>
-                                <input type="number" name="price" class="form-control @error('price') is-invalid @enderror"
+                                <input type="number" id="price" name="price" class="form-control @error('price') is-invalid @enderror"
                                        value="{{ old('price') }}" min="0" placeholder="45000" required>
                                 @error('price')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Stok <span class="text-danger">*</span></label>
-                            <input type="number" name="stock" class="form-control @error('stock') is-invalid @enderror"
+                            <label for="stock" class="form-label fw-semibold small">Stok <span class="text-danger">*</span></label>
+                            <input type="number" id="stock" name="stock" class="form-control @error('stock') is-invalid @enderror"
                                    value="{{ old('stock', 0) }}" min="0" required>
                             @error('stock')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
@@ -71,7 +74,7 @@
             <!-- Kompatibilitas Motor -->
             <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
-                    <h6 class="fw-bold mb-1">Kompatibilitas Motor</h6>
+                    <h2 class="h6 fw-bold mb-1">Kompatibilitas Motor</h2>
                     <p class="small text-muted mb-3">Centang tipe motor yang cocok untuk sparepart ini.</p>
                     <div class="row g-2">
                         @foreach($motorcycles as $m)
@@ -95,14 +98,21 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
-                    <h6 class="fw-bold mb-3">Foto Produk</h6>
+                    <h2 class="h6 fw-bold mb-3">Foto Produk</h2>
                     <div id="imagePreviewWrap" class="bg-light rounded-3 d-flex align-items-center justify-content-center mb-3 border border-dashed" style="height:200px;overflow:hidden;">
-                        <div id="imagePlaceholder" class="text-center text-secondary opacity-50">
-                            <i class="bi bi-image fs-1 d-block"></i>
-                            <small>Belum ada foto</small>
+                        <div id="imagePlaceholder" class="text-center upload-placeholder-text">
+                            <i class="bi bi-image fs-1 d-block" aria-hidden="true"></i>
+                            <small class="fw-medium">Belum ada foto</small>
                         </div>
-                        <img id="imagePreview" src="#" class="w-100 h-100 d-none" style="object-fit:cover;">
+                        <img id="imagePreview"
+                             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                             alt="Pratinjau foto produk"
+                             width="400"
+                             height="200"
+                             class="w-100 h-100 d-none"
+                             style="object-fit:cover;">
                     </div>
+                    <label for="imageInput" class="form-label fw-semibold small">Unggah Foto</label>
                     <input type="file" name="image" id="imageInput" class="form-control @error('image') is-invalid @enderror" accept="image/*">
                     <small class="text-muted d-block mt-1">Maks. 2MB. Format: JPG, PNG, WEBP.</small>
                     @error('image')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -111,11 +121,11 @@
         </div>
     </div>
 
-    <div class="d-flex gap-2 mt-4">
-        <button type="submit" class="btn btn-crimson px-5 fw-semibold">
-            <i class="bi bi-check-lg me-1"></i> Simpan Sparepart
+    <div class="d-flex flex-wrap gap-2 mt-4">
+        <button type="submit" class="btn btn-crimson px-5 fw-semibold d-inline-flex align-items-center justify-content-center">
+            <i class="bi bi-check-lg me-1" aria-hidden="true"></i> Simpan Sparepart
         </button>
-        <a href="{{ route('spareparts.index') }}" class="btn btn-outline-secondary px-4">Batal</a>
+        <a href="{{ route('spareparts.index') }}" class="btn btn-outline-secondary px-4 d-inline-flex align-items-center justify-content-center">Batal</a>
     </div>
 </form>
 @endsection
