@@ -19,7 +19,7 @@ COPY . .
 # ponytail: single-container SQLite/Apache setup; switch to FrankenPHP/Nginx + external DB + queue worker when traffic or background jobs outgrow one instance.
 RUN composer dump-autoload --optimize --no-dev \
     && touch database/database.sqlite \
-    && php artisan storage:link --relative \
+    && php artisan storage:link \
     && chown -R www-data:www-data storage bootstrap/cache database
 
 USER www-data
