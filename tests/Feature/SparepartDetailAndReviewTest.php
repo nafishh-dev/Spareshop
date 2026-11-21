@@ -57,7 +57,7 @@ class SparepartDetailAndReviewTest extends TestCase
         $this->actingAs($user)
             ->get(route('orders.index'))
             ->assertOk()
-            ->assertSee('Beri Ulasan')
+            ->assertSee('Ulas')
             ->assertSee(route('orders.review', $order));
 
         $this->get(route('orders.review', $order))
@@ -120,7 +120,7 @@ class SparepartDetailAndReviewTest extends TestCase
 
         $this->get(route('orders.index'))
             ->assertOk()
-            ->assertSee('Sudah Diulas');
+            ->assertSee('Diulas');
 
         $this->post(route('orders.items.review', [$order, $sparepart]), [
             'rating' => 5,

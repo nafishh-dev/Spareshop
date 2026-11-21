@@ -34,7 +34,7 @@
                             <th scope="col">Jadwal Pasang</th>
                             <th scope="col">Total Bayar</th>
                             <th scope="col">Status</th>
-                            <th scope="col" class="text-end pe-3">Aksi</th>
+                            <th scope="col" class="text-start" style="min-width: 195px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -73,26 +73,30 @@
                                         {{ $statusLabels[$order->status] ?? ucfirst($order->status) }}
                                     </span>
                                 </td>
-                                <td class="text-end pe-3">
-                                    <div class="d-flex flex-wrap justify-content-end gap-2">
-                                        <a href="{{ route('orders.show', $order) }}" class="btn btn-sm btn-crimson">
-                                            <i class="bi bi-receipt me-1"></i>Lihat &amp; Cetak Nota
+                                <td>
+                                    <div class="d-flex align-items-center justify-content-start gap-2 text-nowrap">
+                                        <a href="{{ route('orders.show', $order) }}" class="btn btn-danger btn-sm">
+                                            <i class="bi bi-receipt me-1"></i>Nota
                                         </a>
-                                        @if($order->status === 'selesai')
-                                            <a href="{{ route('orders.review', $order) }}" class="btn btn-sm {{ $allItemsReviewed ? 'btn-outline-secondary' : 'btn-warning' }}">
-                                                @if($allItemsReviewed)
-                                                    <i class="bi bi-check-lg me-1"></i>Sudah Diulas
-                                                @else
-                                                    <i class="bi bi-star-fill me-1"></i>Beri Ulasan
-                                                @endif
-                                            </a>
-                                        @endif
                                         @if($order->status === 'pending')
                                             <form action="{{ route('orders.cancel', $order) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini? Stok sparepart akan dikembalikan.')">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">Batalkan Pesanan</button>
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    <i class="bi bi-x-circle me-1"></i>Batalkan
+                                                </button>
                                             </form>
+                                        @endif
+                                        @if($order->status === 'selesai')
+                                            @if($allItemsReviewed)
+                                                <a href="{{ route('orders.review', $order) }}" class="btn btn-outline-secondary btn-sm">
+                                                    <i class="bi bi-check-circle me-1"></i>Diulas
+                                                </a>
+                                            @else
+                                                <a href="{{ route('orders.review', $order) }}" class="btn btn-warning btn-sm fw-semibold">
+                                                    <i class="bi bi-star-fill me-1"></i>Ulas
+                                                </a>
+                                            @endif
                                         @endif
                                     </div>
                                 </td>
