@@ -117,7 +117,9 @@ class DatabaseSeeder extends Seeder
             'invoice_number' => 'INV-20261109-ABCD',
             'order_type' => 'pasang_bengkel',
             'booking_date' => now()->addDays(2)->toDateString(),
-            'service_fee' => 25000,
+            'booking_time' => Order::BOOKING_SLOTS[0],
+            'service_fee' => 50000,
+            'customer_note' => 'Tolong sekalian cek tekanan ban depan.',
             'status' => 'pending',
         ]);
 

@@ -25,6 +25,10 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             session(['role_aktif' => Auth::user()->role]);
+            if (Auth::user()->motorcycle_id) {
+                session(['selected_motorcycle_id' => Auth::user()->motorcycle_id]);
+                session()->forget('motor_filter_cleared');
+            }
             if (Auth::user()->role === 'admin') {
                 return redirect('/admin/dashboard');
             }

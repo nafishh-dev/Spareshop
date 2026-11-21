@@ -80,7 +80,10 @@
                             </td>
                             <td>
                                 @if($order->booking_date)
-                                    <span class="small fw-semibold"><i class="bi bi-calendar-event text-crimson me-1"></i>{{ \Carbon\Carbon::parse($order->booking_date)->translatedFormat('d M Y') }}</span>
+                                    <div class="small fw-semibold"><i class="bi bi-calendar-event text-crimson me-1"></i>{{ \Carbon\Carbon::parse($order->booking_date)->translatedFormat('d M Y') }}</div>
+                                    @if($order->booking_time)
+                                        <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ $order->booking_time }}</small>
+                                    @endif
                                 @else
                                     <span class="text-muted small">-</span>
                                 @endif
@@ -140,15 +143,22 @@
                             <small class="text-muted d-block">Nama Customer</small>
                             <strong>{{ $order->user->name }}</strong>
                             <div class="small text-muted">{{ $order->user->email }} | {{ $order->user->phone ?? 'Tanpa nomor' }}</div>
+                            @if($order->user->address)
+                                <div class="small text-muted mt-1"><i class="bi bi-geo-alt me-1"></i>{{ $order->user->address }}</div>
+                            @endif
                         </div>
                         <div class="col-sm-6">
                             <small class="text-muted d-block">Tipe Pesanan</small>
                             <strong>{{ $order->order_type === 'pasang_bengkel' ? 'Pasang di Bengkel' : 'Beli Saja' }}</strong>
                             @if($order->booking_date)
                                 <div class="small text-danger fw-semibold">
-                                    <i class="bi bi-clock me-1"></i>Booking: {{ \Carbon\Carbon::parse($order->booking_date)->translatedFormat('l, d F Y') }}
+                                    <i class="bi bi-clock me-1"></i>Booking: {{ \Carbon\Carbon::parse($order->booking_date)->translatedFormat('l, d F Y') }}{{ $order->booking_time ? ' (' . $order->booking_time . ')' : '' }}
                                 </div>
                             @endif
+                        </div>
+                        <div class="col-12 border-top pt-2">
+                            <small class="text-muted d-block">Catatan Pelanggan</small>
+                            <div class="small">{{ $order->customer_note ?: 'Tidak ada catatan.' }}</div>
                         </div>
                     </div>
 
@@ -193,19 +203,26 @@
                     <!-- Update Status Form (Responsif & Rata Kanan) -->
                     <div class="row justify-content-end">
                         <div class="col-12 col-md-6 col-lg-6">
-                            <form action="{{ route('admin.orders.updateStatus', $order) }}" method="POST" class="p-3 border rounded-3 bg-white mb-0">
-                                @csrf @method('PATCH')
-                                <label class="form-label fw-semibold small mb-2">Ubah Status Pesanan</label>
-                                <div class="input-group">
-                                    <select name="status" class="form-select">
-                                        <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>Pending</option>
-                                        <option value="diproses" {{ $order->status === 'diproses' ? 'selected' : '' }}>Diproses</option>
-                                        <option value="selesai" {{ $order->status === 'selesai' ? 'selected' : '' }}>Selesai</option>
-                                        <option value="batal" {{ $order->status === 'batal' ? 'selected' : '' }}>Batal</option>
-                                    </select>
-                                    <button type="submit" class="btn btn-crimson px-3 fw-semibold">Update Status</button>
+                            @if(in_array($order->status, ['selesai', 'batal'], true))
+                                <div class="p-3 border rounded-3 bg-light text-muted small d-flex align-items-center gap-2 mb-0">
+                                    <i class="bi bi-lock-fill text-secondary fs-6"></i>
+                                    <span>Status pesanan sudah final (<strong>{{ ucfirst($order->status) }}</strong>)</span>
                                 </div>
-                            </form>
+                            @else
+                                <form action="{{ route('admin.orders.updateStatus', $order) }}" method="POST" class="p-3 border rounded-3 bg-white mb-0">
+                                    @csrf @method('PATCH')
+                                    <label class="form-label fw-semibold small mb-2">Ubah Status Pesanan</label>
+                                    <div class="input-group">
+                                        <select name="status" class="form-select">
+                                            <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>Pending</option>
+                                            <option value="diproses" {{ $order->status === 'diproses' ? 'selected' : '' }}>Diproses</option>
+                                            <option value="selesai">Selesai</option>
+                                            <option value="batal">Batal</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-crimson px-3 fw-semibold">Update Status</button>
+                                    </div>
+                                </form>
+                            @endif
                         </div>
                     </div>
                 </div>

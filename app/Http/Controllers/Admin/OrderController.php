@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Sparepart;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -35,12 +37,47 @@ class OrderController extends Controller
 
     public function updateStatus(Request $request, Order $order)
     {
-        $request->validate([
-            'status' => 'required|in:pending,diproses,selesai,batal',
+        $validated = $request->validate([
+            'status' => ['required', 'in:pending,diproses,selesai,batal'],
         ]);
 
-        $order->update(['status' => $request->status]);
+        $result = DB::transaction(function () use ($validated, $order) {
+            $lockedOrder = Order::whereKey($order->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        return back()->with('success', "Status pesanan {$order->invoice_number} berhasil diubah ke " . ucfirst($request->status) . '.');
+            if (in_array($lockedOrder->status, ['selesai', 'batal'], true)) {
+                return 'locked';
+            }
+
+            $newStatus = $validated['status'];
+            if ($newStatus === $lockedOrder->status) {
+                return 'unchanged';
+            }
+
+            if ($newStatus === 'batal') {
+                $lockedOrder->loadMissing('items');
+
+                foreach ($lockedOrder->items as $item) {
+                    Sparepart::whereKey($item->sparepart_id)
+                        ->lockForUpdate()
+                        ->increment('stock', $item->qty);
+                }
+            }
+
+            $lockedOrder->update(['status' => $newStatus]);
+
+            return $newStatus === 'batal' ? 'cancelled' : 'updated';
+        }, 5);
+
+        if ($result === 'locked') {
+            return back()->with('error', "Status pesanan {$order->invoice_number} sudah final dan tidak dapat diubah lagi.");
+        }
+
+        if ($result === 'cancelled') {
+            return back()->with('success', "Status pesanan {$order->invoice_number} berhasil diubah ke Batal dan stok sparepart telah dikembalikan.");
+        }
+
+        return back()->with('success', "Status pesanan {$order->invoice_number} berhasil diubah ke " . ucfirst($validated['status']) . '.');
     }
 }
