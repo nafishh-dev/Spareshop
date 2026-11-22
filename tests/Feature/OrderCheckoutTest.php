@@ -84,7 +84,8 @@ class OrderCheckoutTest extends TestCase
             ->assertOk()
             ->assertSee($order->invoice_number)
             ->assertSee(Order::BOOKING_SLOTS[0])
-            ->assertSee('Lihat & Cetak Nota');
+            ->assertSee(route('orders.show', $order), false)
+            ->assertSee('Nota');
 
         $this->actingAs($user)
             ->getJson(route('booking.slots', ['date' => $bookingDate]))

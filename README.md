@@ -1,59 +1,128 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# MotoPart Store
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi e-commerce suku cadang motor dan pemesanan jadwal pemasangan bengkel berbasis Laravel 12. Pelanggan dapat mencari suku cadang yang sesuai dengan tipe motor di garasi profilnya, memilih pembelian langsung atau pemasangan di bengkel sesuai kuota sesi jam mekanik, dan memberikan ulasan terverifikasi setelah pesanan selesai.
 
-## About Laravel
+## Fitur Utama
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Pelanggan
+- **Filter Garasi Motor:** Menyimpan tipe motor utama pada profil atau memilih motor di beranda dan katalog untuk menyaring suku cadang yang kompatibel melalui relasi many-to-many.
+- **Katalog dan Detail Produk:** Pencarian berdasarkan nama, kode SKU, atau merek, filter kategori, informasi stok real-time, rata-rata rating, dan ulasan pembeli terverifikasi.
+- **Keranjang dan Checkout Bengkel:** Mendukung dua metode pemesanan, yaitu `beli_saja` (tanpa biaya jasa) dan `pasang_bengkel` (biaya jasa Rp 25.000 per item). Pemesanan bengkel memilih tanggal kedatangan dan sesi jam (`09:00 - 11:00`, `13:00 - 15:00`, `15:30 - 17:30`) dengan batas kuota maksimal 2 motor per sesi dan pemeriksaan slot langsung via endpoint `/booking-slots`.
+- **Riwayat Pesanan dan Ulasan:** Pembatalan mandiri untuk pesanan berstatus `pending` yang otomatis mengembalikan stok produk, serta pengisian rating dan komentar untuk pesanan berstatus `selesai`.
+- **Lupa dan Reset Password:** Permintaan tautan reset password lewat email dengan `throttle:6,1` serta respons netral untuk mencegah enumerasi akun terdaftar.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Admin
+- **Dashboard Ringkasan:** Statistik total sparepart, total pesanan, pesanan pending, total pelanggan, pesanan terbaru, dan daftar peringatan stok menipis (`stock < 5`).
+- **Manajemen Data Master:** CRUD kategori, tipe motor, dan sparepart termasuk pemetaan kompatibilitas motor dan unggahan gambar produk ke storage publik.
+- **Manajemen Pesanan:** Filter status/tipe pesanan, pencarian nomor invoice atau nama pelanggan, serta pembaruan status pesanan dengan `lockForUpdate` di dalam transaksi database agar perubahan status dan pengembalian stok saat pembatalan tetap aman dari race condition.
+- **Notifikasi Email Status Pesanan:** Ketika admin mengubah status pesanan, aplikasi mengantrekan email pembaruan status ke alamat email pelanggan.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Framework
 
-## Learning Laravel
+- **Backend:** PHP 8.2+, Laravel 12
+- **Database:** MySQL 8.4 (produksi / Docker) atau SQLite (pengembangan lokal)
+- **Antrean dan Cache:** Redis 7 (Docker) atau driver `database` (lokal)
+- **Frontend:** Blade Templates, Bootstrap 5.3, Bootstrap Icons
+- **Email:** Symfony Mailgun Mailer (`symfony/mailgun-mailer`, `symfony/http-client`)
+- **Pengujian dan Kontainer:** PHPUnit 11, Docker, Docker Compose
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Instalasi Lokal
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. Pastikan PHP 8.2+, Composer, dan ekstensi database (SQLite atau MySQL) sudah terpasang.
+2. Instal dependensi PHP:
+   ```bash
+   composer install
+   ```
+3. Salin berkas environment dan buat application key:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+4. Atur koneksi database pada `.env` (default `.env.example` memakai SQLite di `database/database.sqlite`, atau sesuaikan `DB_CONNECTION=mysql` jika menggunakan MySQL).
+5. Jalankan migrasi dan pengisian data awal:
+   ```bash
+   php artisan migrate --seed
+   ```
+6. Buat symbolic link agar gambar produk dan aset publik bisa diakses:
+   ```bash
+   php artisan storage:link
+   ```
+7. Jalankan server pengembangan dan worker antrean email di dua terminal terpisah:
+   ```bash
+   php artisan serve
+   php artisan queue:work
+   ```
+   Aplikasi dapat diakses di `http://127.0.0.1:8000`.
 
-## Laravel Sponsors
+## Menjalankan dengan Docker Compose
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Berkas `compose.yaml` menyiapkan empat layanan: `app` (PHP 8.4 Apache), `queue` (`queue:work` otomatis), `mysql` (MySQL 8.4), dan `redis` (Redis 7).
 
-### Premium Partners
+1. Pastikan berkas `.env` di root proyek sudah memiliki `APP_KEY` yang valid serta `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD` (wajib terisi karena `compose.yaml` memerlukannya).
+2. Bangun image dan jalankan seluruh kontainer:
+   ```bash
+   docker compose up -d --build
+   ```
+   Kontainer `app` otomatis menjalankan `php artisan migrate --force`, caching konfigurasi, rute, view, lalu menyalakan Apache di port `APP_PORT` (default `8000`).
+3. Jalankan seeder ke database kontainer saat inisialisasi awal:
+   ```bash
+   docker compose exec app php artisan db:seed --force
+   ```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Konfigurasi Email (Mailgun HTTP API)
 
-## Contributing
+Aplikasi mendukung pengiriman email lewat Mailgun HTTP API (`mailgun+https`) maupun pencatatan lokal ke berkas log.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- Untuk pengembangan lokal tanpa mengirim email sungguhan, gunakan:
+  ```env
+  MAIL_MAILER=log
+  ```
+- Untuk mengaktifkan pengiriman nyata lewat Mailgun:
+  ```env
+  MAIL_MAILER=mailgun
+  MAIL_FROM_ADDRESS="noreply@domain-anda.com"
+  MAIL_FROM_NAME="MotoPart Store"
+  MAILGUN_DOMAIN=domain-mailgun-anda.com
+  MAILGUN_SECRET=key-api-mailgun-anda
+  MAILGUN_ENDPOINT=api.mailgun.net
+  ```
+  Jika akun Mailgun memakai wilayah Eropa, ubah `MAILGUN_ENDPOINT` menjadi `api.eu.mailgun.net`. Karena pengiriman email menggunakan queue (`ShouldQueue`), pastikan proses `php artisan queue:work` (lokal) atau layanan `queue` (Docker Compose) sedang berjalan.
 
-## Code of Conduct
+## Akun Demo dan Data Awal (`DatabaseSeeder`)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+`DatabaseSeeder` bersifat idempoten (`updateOrCreate` dan `firstOrCreate`) sehingga aman dijalankan ulang tanpa menduplikasi data.
 
-## Security Vulnerabilities
+### Akun Login
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Password untuk seluruh akun demo di bawah ini adalah `password`:
 
-## License
+| Peran | Nama | Email | Motor Utama |
+| :--- | :--- | :--- | :--- |
+| Admin | Admin MotoPart | `admin@spareshop.web.id` | - |
+| Pelanggan | Budi Santoso | `budi@spareshop.web.id` | Honda Vario 150 |
+| Pelanggan | Siti Rahmawati | `siti@spareshop.web.id` | Yamaha NMAX 155 |
+| Pelanggan | Andi Pratama | `andi@spareshop.web.id` | Yamaha Aerox 155 |
+| Pelanggan | Rina Kusuma | `rina@spareshop.web.id` | Honda Scoopy Prestige |
+| Pelanggan | Dimas Saputra | `dimas@spareshop.web.id` | Honda PCX 160 |
+| Pelanggan | Maya Putri | `maya@spareshop.web.id` | Yamaha Fazzio Hybrid 125 |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Skenario Data yang Disiapkan
+
+- **4 kategori dan 8 tipe motor:** Oli & Pelumas, Sistem Pengereman, Komponen CVT, dan Kelistrikan & Aki; mencakup motor Honda, Yamaha, dan Suzuki.
+- **16 produk suku cadang (4 per kategori):** Sudah cukup untuk menampilkan pagination di panel Admin (`paginate(10)`). Mencakup 1 produk habis stok (`CVT-BRT-10G`, stok `0`) dan total 5 produk stok menipis (`stock < 5`) untuk menguji tampilan peringatan stok di dashboard.
+- **14 pesanan lintas status:** Terdiri atas status `pending`, `diproses`, `selesai`, dan `batal`, termasuk 2 pesanan aktif (`INV-20261115-PRCS` dan `INV-20261116-PRCS`) pada tanggal besok (`H+1`) sesi `13:00 - 15:00` sehingga kuota sesi tersebut (`2/2`) langsung penuh saat pengujian booking di `/cart`.
+- **18 ulasan terverifikasi:** Terhubung ke item pada pesanan berstatus `selesai`, sementara 3 produk dibiarkan tanpa ulasan agar variasi rating dan kondisi belum ada ulasan sama-sama terlihat.
+
+## Skema Database
+
+Diagram di bawah ini menampilkan Entity Relationship Diagram (ERD) notasi Chen pada bagian atas serta Relasi Antar Tabel (RAT) notasi Crow's Foot pada bagian bawah:
+
+![Skema Database ERD dan RAT MotoPart Store](docs/skema-database.jpg)
+
+## Pengujian
+
+Jalankan seluruh pengujian fitur menggunakan PHPUnit (menggunakan SQLite `:memory:` sesuai `phpunit.xml`):
+
+```bash
+php artisan test
+```
