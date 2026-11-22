@@ -160,4 +160,50 @@ class AdminOrderManagementTest extends TestCase
             ->assertSee('Status pesanan sudah final')
             ->assertDontSee('Ubah Status Pesanan');
     }
+
+    public function test_unchanged_status_reports_no_change_and_orders_index_renders_accessible_labels_and_empty_states(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = User::factory()->create(['role' => 'customer']);
+
+        // Empty table state + empty query params should not show Reset button
+        $this->actingAs($admin)
+            ->get(route('admin.orders.index', ['search' => '', 'status' => '', 'order_type' => '']))
+            ->assertOk()
+            ->assertSee('Belum ada pesanan masuk')
+            ->assertDontSee('>Reset</a>', false)
+            ->assertSee('for="filter-order-search"', false)
+            ->assertSee('for="filter-order-status"', false)
+            ->assertSee('for="filter-order-type"', false);
+
+        $order = Order::create([
+            'user_id' => $customer->id,
+            'invoice_number' => 'INV-ADM-UNCHANGED',
+            'order_type' => 'beli_saja',
+            'service_fee' => 0,
+            'status' => 'pending',
+        ]);
+
+        // Filtered empty state
+        $this->actingAs($admin)
+            ->get(route('admin.orders.index', ['status' => 'selesai']))
+            ->assertOk()
+            ->assertSee('Tidak ada pesanan yang cocok')
+            ->assertSee('Reset Filter');
+
+        // Unchanged status submission gives honest feedback instead of claiming update succeeded
+        $this->actingAs($admin)
+            ->from(route('admin.orders.index'))
+            ->patch(route('admin.orders.updateStatus', $order), ['status' => 'pending'])
+            ->assertRedirect(route('admin.orders.index'))
+            ->assertSessionHas('error');
+
+        // Modal accessibility bindings on active order
+        $this->actingAs($admin)
+            ->get(route('admin.orders.index'))
+            ->assertOk()
+            ->assertSee('for="order-status-' . $order->id . '"', false)
+            ->assertSee('aria-labelledby="orderDetailLabel' . $order->id . '"', false)
+            ->assertSee('aria-label="Lihat detail pesanan INV-ADM-UNCHANGED"', false);
+    }
 }

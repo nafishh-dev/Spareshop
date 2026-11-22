@@ -69,7 +69,58 @@
             align-items: center;
             justify-content: center;
         }
+        @media (max-width: 991.98px) {
+            .navbar-motopart .navbar-toggler {
+                touch-action: manipulation;
+            }
+            .navbar-motopart .navbar-collapse {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                z-index: 1020;
+                background-color: #1E293B;
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+                border-bottom: 3px solid #DC2626;
+                box-shadow: 0 12px 24px rgba(15, 23, 42, 0.35);
+                max-height: calc(100dvh - 68px);
+                overflow-y: auto;
+                overscroll-behavior: contain;
+            }
+            .navbar-motopart .navbar-collapse.collapsing {
+                overflow: hidden;
+                contain: layout style;
+                transition: height 0.28s ease-out;
+            }
+            .navbar-motopart .nav-collapse-inner {
+                width: 100%;
+                margin-inline: auto;
+                padding: 0.75rem 0.75rem 1rem;
+            }
+            .navbar-motopart .dropdown-menu {
+                position: static;
+                margin-top: 0.35rem;
+            }
+        }
+        @media (min-width: 576px) and (max-width: 767.98px) {
+            .navbar-motopart .nav-collapse-inner {
+                max-width: 540px;
+            }
+        }
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .navbar-motopart .nav-collapse-inner {
+                max-width: 720px;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .navbar-motopart .navbar-collapse.collapsing {
+                transition: none;
+            }
+        }
         @media (min-width: 992px) {
+            .navbar-motopart .nav-collapse-inner {
+                display: contents;
+            }
             .navbar-motopart .btn.tap-target {
                 min-height: 38px;
                 padding-block: 0.35rem;
@@ -178,94 +229,96 @@
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarMotoPart">
-                    <!-- Center: Navigation & "Garasi Saya" Session Widget -->
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center gap-2 ms-lg-2 mt-2 mt-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link text-nowrap {{ request()->routeIs('katalog.*') ? 'active fw-semibold text-white' : '' }}" href="{{ route('katalog.index') }}">
-                                <i class="bi bi-grid-fill me-1 text-crimson" aria-hidden="true"></i> Katalog
-                            </a>
-                        </li>
-                        <li class="nav-item w-100 w-lg-auto">
-                            @php $navMotors = \App\Models\Motorcycle::all(); @endphp
-                            <form action="{{ route('katalog.index') }}" method="GET" class="d-flex align-items-center gap-2 w-100">
-                                <label for="nav-motorcycle-id" class="visually-hidden">Pilih Motor Anda</label>
-                                <div class="input-group flex-nowrap flex-grow-1">
-                                    <span class="input-group-text nav-motor-addon bg-dark text-crimson border-secondary">
-                                        <i class="bi bi-bicycle" aria-hidden="true"></i>
-                                    </span>
-                                    <select id="nav-motorcycle-id" name="motorcycle_id" class="form-select nav-motor-select bg-dark text-white border-secondary" onchange="this.form.submit()">
-                                        <option value="">Semua Tipe Motor</option>
-                                        @foreach($navMotors as $m)
-                                            <option value="{{ $m->id }}" {{ session('selected_motorcycle_id') == $m->id ? 'selected' : '' }}>
-                                                {{ $m->model_name }} ({{ $m->production_year }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                @if(session('selected_motorcycle_id'))
-                                    <a href="{{ route('katalog.resetMotor') }}" class="btn btn-outline-danger nav-reset-btn" title="Reset Filter Motor" aria-label="Reset filter motor">
-                                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    <div class="nav-collapse-inner">
+                        <!-- Center: Navigation & "Garasi Saya" Session Widget -->
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center gap-2 ms-lg-2">
+                            <li class="nav-item">
+                                <a class="nav-link text-nowrap {{ request()->routeIs('katalog.*') ? 'active fw-semibold text-white' : '' }}" href="{{ route('katalog.index') }}">
+                                    <i class="bi bi-grid-fill me-1 text-crimson" aria-hidden="true"></i> Katalog
+                                </a>
+                            </li>
+                            <li class="nav-item w-100 w-lg-auto">
+                                @php $navMotors = \App\Models\Motorcycle::all(); @endphp
+                                <form action="{{ route('katalog.index') }}" method="GET" class="d-flex align-items-center gap-2 w-100">
+                                    <label for="nav-motorcycle-id" class="visually-hidden">Pilih Motor Anda</label>
+                                    <div class="input-group flex-nowrap flex-grow-1">
+                                        <span class="input-group-text nav-motor-addon bg-dark text-crimson border-secondary">
+                                            <i class="bi bi-bicycle" aria-hidden="true"></i>
+                                        </span>
+                                        <select id="nav-motorcycle-id" name="motorcycle_id" class="form-select nav-motor-select bg-dark text-white border-secondary" onchange="this.form.submit()">
+                                            <option value="">Semua Tipe Motor</option>
+                                            @foreach($navMotors as $m)
+                                                <option value="{{ $m->id }}" {{ session('selected_motorcycle_id') == $m->id ? 'selected' : '' }}>
+                                                    {{ $m->model_name }} ({{ $m->production_year }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    @if(session('selected_motorcycle_id'))
+                                        <a href="{{ route('katalog.resetMotor') }}" class="btn btn-outline-danger nav-reset-btn" title="Reset Filter Motor" aria-label="Reset filter motor">
+                                            <i class="bi bi-x-lg" aria-hidden="true"></i>
+                                        </a>
+                                    @endif
+                                </form>
+                            </li>
+                        </ul>
+
+                        <!-- Right: Auth & Cart Menu -->
+                        <div class="d-grid d-sm-flex align-items-center gap-2 mt-3 mt-lg-0 flex-wrap flex-lg-nowrap">
+                            @auth
+                                @php $cartCount = \App\Models\Cart::where('user_id', auth()->id())->sum('qty'); @endphp
+                                <a href="{{ route('cart.index') }}" class="btn btn-outline-light tap-target px-3 position-relative text-nowrap">
+                                    <i class="bi bi-cart3 me-1" aria-hidden="true"></i>Keranjang
+                                    @if($cartCount > 0)
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-crimson">
+                                            {{ $cartCount }}
+                                        </span>
+                                    @endif
+                                </a>
+
+                                <a href="{{ route('orders.index') }}" class="btn btn-outline-light tap-target px-3 text-nowrap">
+                                    <i class="bi bi-receipt me-1" aria-hidden="true"></i>Pesanan Saya
+                                </a>
+
+                                @if(auth()->user()->role === 'admin')
+                                    <a href="{{ route('admin.dashboard') }}" class="btn btn-warning tap-target px-3 fw-semibold text-dark text-nowrap">
+                                        <i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>Panel Admin
                                     </a>
                                 @endif
-                            </form>
-                        </li>
-                    </ul>
 
-                    <!-- Right: Auth & Cart Menu -->
-                    <div class="d-grid d-sm-flex align-items-center gap-2 mt-3 mt-lg-0 flex-wrap flex-lg-nowrap">
-                        @auth
-                            @php $cartCount = \App\Models\Cart::where('user_id', auth()->id())->sum('qty'); @endphp
-                            <a href="{{ route('cart.index') }}" class="btn btn-outline-light tap-target px-3 position-relative text-nowrap">
-                                <i class="bi bi-cart3 me-1" aria-hidden="true"></i>Keranjang
-                                @if($cartCount > 0)
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-crimson">
-                                        {{ $cartCount }}
-                                    </span>
-                                @endif
-                            </a>
+                                <div class="dropdown">
+                                    <button class="btn btn-dark tap-target px-3 dropdown-toggle d-flex align-items-center gap-2 border-secondary text-nowrap w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-person-circle text-crimson" aria-hidden="true"></i>
+                                        <span>{{ auth()->user()->name }}</span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                        <li>
+                                            <span class="dropdown-item-text small text-muted">{{ auth()->user()->email }}</span>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item py-2" href="{{ route('profile.edit') }}">
+                                                <i class="bi bi-person-vcard me-1 text-crimson" aria-hidden="true"></i> Profil Saya
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form action="{{ route('logout') }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="dropdown-item py-2 text-danger">
+                                                    <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i> Keluar
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            @endauth
 
-                            <a href="{{ route('orders.index') }}" class="btn btn-outline-light tap-target px-3 text-nowrap">
-                                <i class="bi bi-receipt me-1" aria-hidden="true"></i>Pesanan Saya
-                            </a>
-
-                            @if(auth()->user()->role === 'admin')
-                                <a href="{{ route('admin.dashboard') }}" class="btn btn-warning tap-target px-3 fw-semibold text-dark text-nowrap">
-                                    <i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>Panel Admin
-                                </a>
-                            @endif
-
-                            <div class="dropdown">
-                                <button class="btn btn-dark tap-target px-3 dropdown-toggle d-flex align-items-center gap-2 border-secondary text-nowrap w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-circle text-crimson" aria-hidden="true"></i>
-                                    <span>{{ auth()->user()->name }}</span>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                    <li>
-                                        <span class="dropdown-item-text small text-muted">{{ auth()->user()->email }}</span>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item py-2" href="{{ route('profile.edit') }}">
-                                            <i class="bi bi-person-vcard me-1 text-crimson" aria-hidden="true"></i> Profil Saya
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form action="{{ route('logout') }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="dropdown-item py-2 text-danger">
-                                                <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i> Keluar
-                                            </button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
-                        @endauth
-
-                        @guest
-                            <a href="{{ route('login') }}" class="btn btn-outline-light tap-target px-3">Masuk</a>
-                            <a href="{{ route('register') }}" class="btn btn-crimson tap-target px-3 fw-semibold">Daftar</a>
-                        @endguest
+                            @guest
+                                <a href="{{ route('login') }}" class="btn btn-outline-light tap-target px-3">Masuk</a>
+                                <a href="{{ route('register') }}" class="btn btn-crimson tap-target px-3 fw-semibold">Daftar</a>
+                            @endguest
+                        </div>
                     </div>
                 </div>
             </div>
