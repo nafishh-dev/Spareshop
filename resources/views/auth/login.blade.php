@@ -230,7 +230,10 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="login-password" class="form-label small fw-semibold">Password</label>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label for="login-password" class="form-label small fw-semibold mb-0">Password</label>
+                                        <a href="{{ route('password.request') }}" class="auth-link small">Lupa password?</a>
+                                    </div>
                                     <div class="input-group">
                                         <span class="input-group-text border-end-0"><i class="bi bi-lock" aria-hidden="true"></i></span>
                                         <input type="password" id="login-password" name="password" class="form-control border-start-0" placeholder="Masukkan password" required minlength="6" autocomplete="current-password">

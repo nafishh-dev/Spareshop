@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OrderStatusUpdatedMail;
 use App\Models\Order;
 use App\Models\Sparepart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -47,13 +49,15 @@ class OrderController extends Controller
                 ->firstOrFail();
 
             if (in_array($lockedOrder->status, ['selesai', 'batal'], true)) {
-                return 'locked';
+                return ['outcome' => 'locked', 'previousStatus' => $lockedOrder->status];
             }
 
             $newStatus = $validated['status'];
             if ($newStatus === $lockedOrder->status) {
-                return 'unchanged';
+                return ['outcome' => 'unchanged', 'previousStatus' => $lockedOrder->status];
             }
+
+            $previousStatus = $lockedOrder->status;
 
             if ($newStatus === 'batal') {
                 $lockedOrder->loadMissing('items');
@@ -67,18 +71,37 @@ class OrderController extends Controller
 
             $lockedOrder->update(['status' => $newStatus]);
 
-            return $newStatus === 'batal' ? 'cancelled' : 'updated';
+            return [
+                'outcome' => $newStatus === 'batal' ? 'cancelled' : 'updated',
+                'previousStatus' => $previousStatus,
+            ];
         }, 5);
 
-        if ($result === 'locked') {
+        if ($result['outcome'] === 'locked') {
             return back()->with('error', "Status pesanan {$order->invoice_number} sudah final dan tidak dapat diubah lagi.");
         }
 
-        if ($result === 'unchanged') {
+        if ($result['outcome'] === 'unchanged') {
             return back()->with('error', "Status pesanan {$order->invoice_number} tidak berubah karena sudah berstatus " . ucfirst($validated['status']) . '.');
         }
 
-        if ($result === 'cancelled') {
+        if (
+            in_array($result['outcome'], ['updated', 'cancelled'], true)
+            && in_array($validated['status'], ['diproses', 'selesai', 'batal'], true)
+        ) {
+            $order->refresh()->loadMissing(['user', 'items.sparepart']);
+            if ($order->user && filled($order->user->email)) {
+                try {
+                    Mail::to($order->user->email)->queue(
+                        new OrderStatusUpdatedMail($order, $result['previousStatus'])
+                    );
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+        }
+
+        if ($result['outcome'] === 'cancelled') {
             return back()->with('success', "Status pesanan {$order->invoice_number} berhasil diubah ke Batal dan stok sparepart telah dikembalikan.");
         }
 
