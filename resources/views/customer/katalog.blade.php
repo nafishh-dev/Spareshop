@@ -2,6 +2,19 @@
 
 @section('title', 'Katalog Suku Cadang')
 
+@push('styles')
+    <style>
+        .category-scroll {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .category-scroll::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+@endpush
+
 @section('content')
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <div>
@@ -38,14 +51,14 @@
         </div>
     </form>
 
-    <div class="d-flex flex-wrap gap-2 mb-4" aria-label="Filter kategori">
+    <div class="d-flex flex-nowrap flex-md-wrap align-items-center gap-2 overflow-x-auto pb-1 category-scroll mb-4" aria-label="Filter kategori">
         <a href="{{ route('katalog.index', ['search' => request('search'), 'motorcycle_id' => session('selected_motorcycle_id')]) }}"
-            class="btn btn-sm rounded-pill {{ request()->filled('category_id') ? 'btn-outline-secondary' : 'btn-crimson' }}">
+            class="btn btn-sm rounded-pill px-3 py-2 text-nowrap {{ request()->filled('category_id') ? 'btn-outline-secondary bg-white' : 'btn-danger fw-semibold' }}">
             Semua kategori
         </a>
         @foreach($categories as $category)
             <a href="{{ route('katalog.index', ['category_id' => $category->id, 'search' => request('search'), 'motorcycle_id' => session('selected_motorcycle_id')]) }}"
-                class="btn btn-sm rounded-pill {{ request('category_id') == $category->id ? 'btn-crimson' : 'btn-outline-secondary' }}">
+                class="btn btn-sm rounded-pill px-3 py-2 text-nowrap {{ request('category_id') == $category->id ? 'btn-danger fw-semibold' : 'btn-outline-secondary bg-white' }}">
                 {{ $category->name }}
             </a>
         @endforeach
