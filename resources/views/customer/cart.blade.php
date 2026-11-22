@@ -166,7 +166,7 @@
         const bookingDateInput = document.getElementById('booking_date');
         const bookingTimeInput = document.getElementById('booking_time');
         const bookingSlotFeedback = document.getElementById('booking-slot-feedback');
-        const bookingSlotsUrl = @json(route('booking.slots'));
+        const bookingSlotsUrl = @json(route('booking.slots', [], false));
         let bookingSlotsRequest;
         let preferredBookingTime = @json(old('booking_time'));
 
@@ -209,9 +209,13 @@
             bookingSlotFeedback.textContent = '';
 
             try {
-                const url = new URL(bookingSlotsUrl);
+                const url = new URL(bookingSlotsUrl, window.location.origin);
                 url.searchParams.set('date', bookingDateInput.value);
-                const response = await fetch(url, { signal: bookingSlotsRequest.signal });
+                const response = await fetch(url, {
+                    signal: bookingSlotsRequest.signal,
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin',
+                });
                 if (!response.ok) {
                     throw new Error('Kuota sesi tidak dapat dimuat.');
                 }
